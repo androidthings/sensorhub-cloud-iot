@@ -1,0 +1,74 @@
+/*
+ * Copyright 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion '25.0.2'
+
+    defaultConfig {
+        applicationId "com.example.androidthings.weatherstation"
+        minSdkVersion 24
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        debug {
+            buildConfigField "String", "PROJECT_ID", '"YOUR GOOGLE CLOUD PROJECT ID"'
+            buildConfigField "String", "PUBSUB_TOPIC", '"YOUR GOOGLE CLOUD PUBSUB TOPIC"'
+        }
+        release {
+            initWith(buildTypes.debug)
+
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+    }
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+    provided 'com.google.android.things:androidthings:0.3-devpreview'
+    compile 'com.google.android.things.contrib:driver-bmx280:0.1'
+    compile 'com.google.android.things.contrib:driver-button:0.2'
+
+    // for pubsub:
+    compile('com.google.api-client:google-api-client-android:1.22.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    compile('com.google.apis:google-api-services-pubsub:v1-rev12-1.22.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+
+    // for MQTT:
+    compile('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0', {
+        exclude group: 'com.google.android', module: 'support-v4'
+    })
+    compile('org.eclipse.paho:org.eclipse.paho.android.service:1.0.2', {
+        exclude group: 'com.google.android', module: 'support-v4'
+    })
+    compile 'io.jsonwebtoken:jjwt:0.7.0'
+
+    // Helper libraries for MQTT support:
+    compile 'joda-time:joda-time:2.9.7'
+    compile 'commons-io:commons-io:2.5'
+
+}
