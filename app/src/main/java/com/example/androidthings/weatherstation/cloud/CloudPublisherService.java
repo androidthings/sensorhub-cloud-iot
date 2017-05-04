@@ -222,7 +222,9 @@ public class CloudPublisherService extends Service {
             Log.i(TAG, "Configuring publisher with intent.");
             CloudIotOptions options = readOptions(intent);
             saveOptions(options);
-            mPublisher.reconfigure(options);
+            if (mPublisher != null) {
+                mPublisher.reconfigure(options);
+            }
         }
         return START_NOT_STICKY;
     }

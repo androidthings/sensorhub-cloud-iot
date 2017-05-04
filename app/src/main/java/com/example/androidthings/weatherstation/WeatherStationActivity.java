@@ -21,7 +21,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.hardware.Sensor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -30,8 +29,12 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.example.androidthings.weatherstation.cloud.CloudPublisherService;
+import com.google.android.things.contrib.driver.bmx280.Bme280;
 import com.google.android.things.contrib.driver.bmx280.Bmx280;
 import com.google.android.things.contrib.driver.button.Button;
+import com.google.android.things.contrib.driver.tsl2561.TSL2561;
+import com.google.android.things.pio.I2cDevice;
+import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,16 +60,18 @@ public class WeatherStationActivity extends Activity {
         INITIAL_VALID_TIMESTAMP = calendar.getTimeInMillis();
     }
 
-    // We do not use Sensor.TYPE_MOTION to avoid confusion with Android regular motion detection
-    // event, when the device itself is moving. In our case, the device has a PIR sensor and
-    // detects motion around it.
-    public static final String SENSOR_TYPE_MOTION_DETECTION = "android.sensor.custom.motion";
+    public static final String SENSOR_TYPE_MOTION_DETECTION = "motion";
+    public static final String SENSOR_TYPE_HUMIDITY_DETECTION = "humidity";
+    public static final String SENSOR_TYPE_TEMPERATURE_DETECTION = "temperature";
+    public static final String SENSOR_TYPE_AMBIENT_PRESSURE_DETECTION = "ambient_pressure";
+    public static final String SENSOR_TYPE_LUMINOSITY_DETECTION = "luminosity";
 
     private CloudPublisherService mPublishService;
     private Looper mSensorLooper;
 
     // sensors
-    private Bmx280 mEnvironmentalSensor;
+    private Bme280 mEnvironmentalSensor;
+    private TSL2561 mLuxSensor;
     private Button mMotionDetectorSensor;
 
     @Override
@@ -119,22 +124,42 @@ public class WeatherStationActivity extends Activity {
             mEnvironmentalSensor = connectToBmx280();
         }
 
+        if (mLuxSensor == null) {
+            mLuxSensor = connectToTsl2561();
+        }
+
         if (mMotionDetectorSensor == null) {
             mMotionDetectorSensor = connectToMotionDetector();
         }
     }
 
-    private Bmx280 connectToBmx280() {
+    private TSL2561 connectToTsl2561() {
         try {
-            Bmx280 bmx280 = new Bmx280(BoardDefaults.getI2cBusForBmx280());
+            TSL2561 tsl2561 = new TSL2561(BoardDefaults.getI2cBusForSensors());
+            Log.d(TAG, "Initialized TSL2561");
+            return tsl2561;
+        } catch (Throwable t) {
+            Log.w(TAG, "Could not initialize TSL2561 sensor on I2C bus " +
+                    BoardDefaults.getI2cBusForSensors(), t);
+            return null;
+        }
+    }
+
+    private Bme280 connectToBmx280() {
+        try {
+            PeripheralManagerService pioService = new PeripheralManagerService();
+            I2cDevice device = pioService.openI2cDevice(
+                    BoardDefaults.getI2cBusForSensors(), 0x77);
+            Bme280 bmx280 = new Bme280(device);
             bmx280.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
             bmx280.setPressureOversampling(Bmx280.OVERSAMPLING_1X);
+            bmx280.setHumidityOversampling(Bmx280.OVERSAMPLING_1X);
             bmx280.setMode(Bmx280.MODE_NORMAL);
-            Log.d(TAG, "Initialized BMP280");
+            Log.d(TAG, "Initialized BME280");
             return bmx280;
         } catch (Throwable t) {
-            Log.w(TAG, "Could not initialize BMP280 sensor on I2C bus " +
-                    BoardDefaults.getI2cBusForBmx280(), t);
+            Log.w(TAG, "Could not initialize BME280 sensor on I2C bus " +
+                    BoardDefaults.getI2cBusForSensors(), t);
             return null;
         }
     }
@@ -162,6 +187,8 @@ public class WeatherStationActivity extends Activity {
         if (mPublishService != null) {
             List<SensorData> sensorsData = new ArrayList<>();
             addBmx280Readings(sensorsData);
+            addTSL2561Readings(sensorsData);
+            Log.d(TAG, "collected continuous sensor data: " + sensorsData);
             mPublishService.logSensorData(sensorsData);
         }
     }
@@ -172,15 +199,35 @@ public class WeatherStationActivity extends Activity {
                 long now = System.currentTimeMillis();
                 if (now >= INITIAL_VALID_TIMESTAMP) {
                     float[] data = mEnvironmentalSensor.readTemperatureAndPressure();
-                    output.add(new SensorData(now, Sensor.STRING_TYPE_AMBIENT_TEMPERATURE,
-                            data[0]));
-                    output.add(new SensorData(now, Sensor.STRING_TYPE_PRESSURE, data[1]));
+                    output.add(new SensorData(now, SENSOR_TYPE_TEMPERATURE_DETECTION, data[0]));
+                    output.add(new SensorData(now, SENSOR_TYPE_AMBIENT_PRESSURE_DETECTION,
+                            data[1]));
+                    float humidity = mEnvironmentalSensor.readHumidity();
+                    output.add(new SensorData(now, SENSOR_TYPE_HUMIDITY_DETECTION, humidity));
                 } else {
                     Log.i(TAG, "Ignoring sensor readings because timestamp is invalid. " +
                             "Please, set the device's date/time");
                 }
             } catch (Throwable t) {
                 Log.w(TAG, "Cannot collect Bmx280 data. Ignoring it for now", t);
+                closeBmx280Quietly();
+            }
+        }
+    }
+
+    private void addTSL2561Readings(List<SensorData> output) {
+        if (mLuxSensor != null) {
+            try {
+                long now = System.currentTimeMillis();
+                if (now >= INITIAL_VALID_TIMESTAMP) {
+                    long data = mLuxSensor.getLux();
+                    output.add(new SensorData(now, SENSOR_TYPE_LUMINOSITY_DETECTION, data));
+                } else {
+                    Log.i(TAG, "Ignoring sensor readings because timestamp is invalid. " +
+                            "Please, set the device's date/time");
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "Cannot collect TSL2561 data. Ignoring it for now", t);
                 closeBmx280Quietly();
             }
         }
@@ -210,6 +257,17 @@ public class WeatherStationActivity extends Activity {
         }
     }
 
+    private void closeTsl2561Quietly() {
+        if (mLuxSensor != null) {
+            try {
+                mLuxSensor.close();
+            } catch (IOException e) {
+                // close quietly
+            }
+            mLuxSensor = null;
+        }
+    }
+
     private void closeMotionDetectorQuietly() {
         if (mMotionDetectorSensor != null) {
             try {
@@ -228,6 +286,7 @@ public class WeatherStationActivity extends Activity {
 
         mSensorLooper.quit();
         closeBmx280Quietly();
+        closeTsl2561Quietly();
         closeMotionDetectorQuietly();
 
         // unbind from Cloud Publisher service.

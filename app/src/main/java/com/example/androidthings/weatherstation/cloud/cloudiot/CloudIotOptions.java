@@ -32,7 +32,7 @@ public class CloudIotOptions {
 
     private static final String DEFAULT_REGION = "us-central1";
     private static final String DEFAULT_BRIDGE_HOSTNAME = "mqtt.googleapis.com";
-    private static final short DEFAULT_BRIDGE_PORT = 8883;
+    private static final short DEFAULT_BRIDGE_PORT = 443;
 
     public static final String RS_256_DESIGNATOR = "RS256";
     public static final String ES_256_DESIGNATOR = "ES256";

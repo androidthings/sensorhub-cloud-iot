@@ -32,7 +32,7 @@ public final class BoardDefaults {
     private static final String DEVICE_VVDN = "imx6ul_iopb";
     private static String sBoardVariant = "";
 
-    public static String getI2cBusForBmx280() {
+    public static String getI2cBusForSensors() {
         switch (getBoardVariant()) {
             case DEVICE_EDISON_ARDUINO:
                 return "I2C6";

@@ -15,8 +15,6 @@
  */
 package com.example.androidthings.weatherstation.cloud;
 
-import android.util.Base64;
-
 import com.example.androidthings.weatherstation.SensorData;
 
 import org.json.JSONArray;
@@ -30,7 +28,7 @@ public class MessagePayload {
     public static byte[] encode(List<SensorData> data) {
         try {
             JSONObject messagePayload = createMessagePayload(data);
-            return Base64.encode(messagePayload.toString().getBytes(), Base64.NO_WRAP);
+            return messagePayload.toString().getBytes();
         } catch (JSONException e) {
             throw new IllegalArgumentException("Invalid message");
         }
@@ -41,7 +39,8 @@ public class MessagePayload {
         JSONArray dataArray = new JSONArray();
         for (SensorData el : data) {
             JSONObject sensor = new JSONObject();
-            sensor.put("timestamp", el.getTimestamp());
+            sensor.put("timestamp_" + el.getSensorName(),
+                    el.getTimestamp());
             sensor.put(el.getSensorName(), el.getValue());
             dataArray.put(sensor);
         }
