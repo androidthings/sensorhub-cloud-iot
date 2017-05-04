@@ -34,12 +34,6 @@ public class CloudIotOptions {
     private static final String DEFAULT_BRIDGE_HOSTNAME = "mqtt.googleapis.com";
     private static final short DEFAULT_BRIDGE_PORT = 443;
 
-    public static final String RS_256_DESIGNATOR = "RS256";
-    public static final String ES_256_DESIGNATOR = "ES256";
-
-    private static final String DEFAULT_PRIVATE_KEY_FILE = "CloudIot/private_key.pkcs8";
-    private static final String DEFAULT_ALGORITHM = RS_256_DESIGNATOR;
-
     public static final String UNUSED_ACCOUNT_NAME = "unused";
 
     /**
@@ -67,16 +61,6 @@ public class CloudIotOptions {
      * Cloud IoT device id.
      */
     private String deviceId;
-
-    /**
-     * Path to private key file.
-     */
-    private String privateKeyFile = DEFAULT_PRIVATE_KEY_FILE;
-
-    /**
-     * Encryption algorithm to use to generate the JWT. Either 'RS256' or 'ES256'.
-     */
-    private String algorithm = DEFAULT_ALGORITHM;
 
     /**
      * GCP cloud region.
@@ -120,14 +104,6 @@ public class CloudIotOptions {
         return deviceId;
     }
 
-    public String getPrivateKeyFile() {
-        return privateKeyFile;
-    }
-
-    public String getAlgorithm() {
-        return algorithm;
-    }
-
     public String getCloudRegion() {
         return cloudRegion;
     }
@@ -147,8 +123,6 @@ public class CloudIotOptions {
         return !TextUtils.isEmpty(projectId) &&
                 !TextUtils.isEmpty(registryId) &&
                 !TextUtils.isEmpty(deviceId) &&
-                !TextUtils.isEmpty(privateKeyFile) &&
-                !TextUtils.isEmpty(algorithm) &&
                 !TextUtils.isEmpty(cloudRegion) &&
                 !TextUtils.isEmpty(bridgeHostname);
     }
@@ -158,8 +132,6 @@ public class CloudIotOptions {
         editor.putString("project_id", projectId);
         editor.putString("registry_id", registryId);
         editor.putString("device_id", deviceId);
-        editor.putString("private_key_file", privateKeyFile);
-        editor.putString("algorithm", algorithm);
         editor.putString("cloud_region", cloudRegion);
         editor.putString("mqtt_bridge_hostname", bridgeHostname);
         editor.putInt("mqtt_bridge_port", bridgePort);
@@ -176,8 +148,6 @@ public class CloudIotOptions {
             options.projectId = pref.getString("project_id", null);
             options.registryId = pref.getString("registry_id", null);
             options.deviceId = pref.getString("device_id", null);
-            options.algorithm = pref.getString("algorithm", DEFAULT_ALGORITHM);
-            options.privateKeyFile = pref.getString("private_key_file", DEFAULT_PRIVATE_KEY_FILE);
             options.cloudRegion = pref.getString("cloud_region", DEFAULT_REGION);
             options.bridgeHostname = pref.getString("mqtt_bridge_hostname",
                     DEFAULT_BRIDGE_HOSTNAME);
@@ -195,8 +165,8 @@ public class CloudIotOptions {
         try {
             if (Log.isLoggable(TAG, Log.INFO)) {
                 HashSet<String> valid = new HashSet<>(Arrays.asList(new String[] {"project_id",
-                        "registry_id", "device_id", "private_key_file", "algorithm",
-                        "cloud_region", "mqtt_bridge_hostname", "mqtt_bridge_port"}));
+                        "registry_id", "device_id","cloud_region", "mqtt_bridge_hostname",
+                        "mqtt_bridge_port"}));
                 valid.retainAll(bundle.keySet());
                 Log.i(TAG, "Configuring options using the following intent extras: " + valid);
             }
@@ -205,8 +175,6 @@ public class CloudIotOptions {
             result.projectId = bundle.getString("project_id", original.projectId);
             result.registryId = bundle.getString("registry_id", original.registryId);
             result.deviceId = bundle.getString("device_id", original.deviceId);
-            result.algorithm = bundle.getString("algorithm", original.algorithm);
-            result.privateKeyFile = bundle.getString("private_key_file", original.privateKeyFile);
             result.cloudRegion = bundle.getString("cloud_region", original.cloudRegion);
             result.bridgeHostname = bundle.getString("mqtt_bridge_hostname",
                     original.bridgeHostname);
@@ -226,8 +194,6 @@ public class CloudIotOptions {
         return TextUtils.equals(projectId , o.projectId)
             && TextUtils.equals(registryId, o.registryId)
             && TextUtils.equals(deviceId, o.deviceId)
-            && TextUtils.equals(algorithm, o.algorithm)
-            && TextUtils.equals(privateKeyFile, o.privateKeyFile)
             && TextUtils.equals(cloudRegion, o.cloudRegion)
             && TextUtils.equals(bridgeHostname, o.bridgeHostname)
             && o.bridgePort == bridgePort;

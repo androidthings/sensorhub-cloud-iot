@@ -23,29 +23,31 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+/**
+ * This class handles the serialization of the SensorData objects into a String
+ */
 public class MessagePayload {
 
-    public static byte[] encode(List<SensorData> data) {
+    /**
+     * Serialize a List of SensorData objects into a JSON string, for sending to the cloud
+     * @param data List of SensorData objects to serialize
+     * @return JSON String
+     */
+    public static String createMessagePayload(List<SensorData> data) {
         try {
-            JSONObject messagePayload = createMessagePayload(data);
-            return messagePayload.toString().getBytes();
+            JSONObject messagePayload = new JSONObject();
+            JSONArray dataArray = new JSONArray();
+            for (SensorData el : data) {
+                JSONObject sensor = new JSONObject();
+                sensor.put("timestamp_" + el.getSensorName(),
+                    el.getTimestamp());
+                sensor.put(el.getSensorName(), el.getValue());
+                dataArray.put(sensor);
+            }
+            messagePayload.put("data", dataArray);
+            return messagePayload.toString();
         } catch (JSONException e) {
             throw new IllegalArgumentException("Invalid message");
         }
     }
-
-    private static JSONObject createMessagePayload(List<SensorData> data) throws JSONException {
-        JSONObject messagePayload = new JSONObject();
-        JSONArray dataArray = new JSONArray();
-        for (SensorData el : data) {
-            JSONObject sensor = new JSONObject();
-            sensor.put("timestamp_" + el.getSensorName(),
-                    el.getTimestamp());
-            sensor.put(el.getSensorName(), el.getValue());
-            dataArray.put(sensor);
-        }
-        messagePayload.put("data", dataArray);
-        return messagePayload;
-    }
-
 }

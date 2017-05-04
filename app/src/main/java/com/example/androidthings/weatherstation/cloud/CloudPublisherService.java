@@ -57,7 +57,7 @@ public class CloudPublisherService extends Service {
     private static final long PUBLISH_INTERVAL_MS = TimeUnit.SECONDS.toMillis(20);
 
     // After this amount of tentatives, the publish interval will change from PUBLISH_INTERVAL_MS
-    // to BACKOFF_INTERVAL_MS until a successful conenction has been established.
+    // to BACKOFF_INTERVAL_MS until a successful connection has been established.
     private static final long ERRORS_TO_INITIATE_BACKOFF = 20;
     private static final long BACKOFF_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
 

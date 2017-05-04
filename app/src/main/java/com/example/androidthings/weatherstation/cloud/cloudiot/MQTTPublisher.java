@@ -18,34 +18,26 @@ package com.example.androidthings.weatherstation.cloud.cloudiot;
 
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.util.Base64;
 import android.util.Log;
 
 import com.example.androidthings.weatherstation.SensorData;
 import com.example.androidthings.weatherstation.cloud.CloudPublisher;
 import com.example.androidthings.weatherstation.cloud.MessagePayload;
 
-import org.apache.commons.io.IOUtils;
+import java.io.File;
+import java.io.FileNotFoundException;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.joda.time.DateTime;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 
 /**
  * Handle publishing sensor data to a Cloud IoT MQTT endpoint.
@@ -61,12 +53,9 @@ public class MQTTPublisher implements CloudPublisher {
     // Use mqttQos=1 (at least once delivery), mqttQos=0 (at most once delivery) also supported.
     private static final int MQTT_QOS = 1;
 
-    // Instance names for various key factories.
-    private static final String RSA_KEY_FACTORY_INSTANCE_NAME = "RSA";
-    private static final String EX_KEY_FACTORY_INSTANCE_NAME = "EC";
-
     private MqttClient mqttClient;
     private CloudIotOptions cloudIotOptions;
+    private MqttAuthentication mqttAuth;
     private AtomicBoolean mReady = new AtomicBoolean(false);
 
     public MQTTPublisher(@NonNull CloudIotOptions options) {
@@ -95,16 +84,38 @@ public class MQTTPublisher implements CloudPublisher {
     private void initialize(@NonNull CloudIotOptions options) {
         if (!options.isValid()) {
             Log.w(TAG, "Postponing initialization, since CloudIotOptions is incomplete. " +
-                    "Please configure via intent, for example: \n" +
-                    "adb shell am startservice -a " +
-                    "com.example.androidthings.weatherstation.mqtt.CONFIGURE " +
-                    "-e project_id <PROJECT_ID> -e registry_id <REGISTRY_ID> " +
-                    "-e device_id <DEVICE_ID> " +
-                    "com.example.androidthings.weatherstation/.cloud.CloudPublisherService\n");
+                "Please configure via intent, for example: \n" +
+                "adb shell am startservice -a " +
+                "com.example.androidthings.weatherstation.mqtt.CONFIGURE " +
+                "-e project_id <PROJECT_ID> -e registry_id <REGISTRY_ID> " +
+                "-e device_id <DEVICE_ID> " +
+                "com.example.androidthings.weatherstation/.cloud.CloudPublisherService\n");
             return;
         }
         try {
             cloudIotOptions = options;
+            Log.i(TAG, "Device Configuration:");
+            Log.i(TAG, " Project ID: "+cloudIotOptions.getProjectId());
+            Log.i(TAG, "  Region ID: "+cloudIotOptions.getCloudRegion());
+            Log.i(TAG, "Registry ID: "+cloudIotOptions.getRegistryId());
+            Log.i(TAG, "  Device ID: "+cloudIotOptions.getDeviceId());
+            Log.i(TAG, "MQTT Configuration:");
+            Log.i(TAG, "Broker: "+cloudIotOptions.getBridgeHostname()+":"+cloudIotOptions.getBridgePort());
+            Log.i(TAG, "Publishing to topic: "+cloudIotOptions.getTopicName());
+            mqttAuth = new MqttAuthentication();
+            mqttAuth.initialize();
+            if( Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                try {
+                    mqttAuth.exportPublicKey(new File(Environment.getExternalStorageDirectory(),
+                        "cloud_iot_auth_certificate.pem"));
+                } catch (GeneralSecurityException | IOException e) {
+                    if( e instanceof FileNotFoundException && e.getMessage().contains("Permission denied")) {
+                        Log.e(TAG, "Unable to export certificate, may need to reboot to receive WRITE permissions?", e);
+                    } else {
+                        Log.e(TAG, "Unable to export certificate", e);
+                    }
+                }
+            }
             initializeMqttClient();
         } catch (MqttException | IOException | GeneralSecurityException e) {
             throw new IllegalArgumentException("Could not initialize MQTT", e);
@@ -124,7 +135,9 @@ public class MQTTPublisher implements CloudPublisher {
                         throw new IllegalArgumentException("Could not initialize MQTT", e);
                     }
                 }
-                sendMessage(cloudIotOptions.getTopicName(), MessagePayload.encode(data));
+                String payload = MessagePayload.createMessagePayload(data);
+                Log.d(TAG, "Publishing: "+payload);
+                sendMessage(cloudIotOptions.getTopicName(), payload.getBytes());
             }
         } catch (MqttException e) {
             throw new IllegalArgumentException("Could not send message", e);
@@ -147,19 +160,11 @@ public class MQTTPublisher implements CloudPublisher {
         }
     }
 
-    private byte[] getKeyBytes() throws IOException {
-        File keyFile = new File(Environment.getExternalStorageDirectory(),
-                cloudIotOptions.getPrivateKeyFile());
-        try (FileInputStream inputStream = new FileInputStream(keyFile)) {
-            return IOUtils.toByteArray(inputStream);
-        }
-    }
-
     private void initializeMqttClient()
-            throws MqttException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        throws MqttException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         mqttClient = new MqttClient(cloudIotOptions.getBrokerUrl(),
-                cloudIotOptions.getClientId(), new MemoryPersistence());
+            cloudIotOptions.getClientId(), new MemoryPersistence());
 
         MqttConnectOptions options = new MqttConnectOptions();
         // Note that the the Google Cloud IoT only supports MQTT 3.1.1, and Paho requires that we
@@ -167,53 +172,12 @@ public class MQTTPublisher implements CloudPublisher {
         // connection to your device.
         options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
         options.setUserName(CloudIotOptions.UNUSED_ACCOUNT_NAME);
-        options.setPassword(createJwt(cloudIotOptions.getProjectId(),
-                cloudIotOptions.getAlgorithm(), getKeyBytes()));
+
+        // generate the jwt password
+        options.setPassword(mqttAuth.createJwt(cloudIotOptions.getProjectId()));
 
         mqttClient.connect(options);
         mReady.set(true);
-    }
-
-    private char[] createJwt(String projectId, String algorithm, byte[] privateKeyBytes)
-            throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
-        DateTime now = new DateTime();
-
-        // Create a JWT to authenticate this device. The device will be disconnected after the token
-        // expires, and will have to reconnect with a new token. The audience field should always
-        // be set to the GCP project id.
-        JwtBuilder jwtBuilder =
-                Jwts.builder()
-                        .setIssuedAt(now.toDate())
-                        .setExpiration(now.plusMinutes(60).toDate())
-                        .setAudience(projectId);
-
-        SignatureAlgorithm algorithmObj;
-        String factoryName;
-
-        switch (algorithm) {
-            case CloudIotOptions.RS_256_DESIGNATOR:
-                algorithmObj = SignatureAlgorithm.RS256;
-                factoryName = RSA_KEY_FACTORY_INSTANCE_NAME;
-                break;
-            case CloudIotOptions.ES_256_DESIGNATOR:
-                algorithmObj = SignatureAlgorithm.ES256;
-                factoryName = EX_KEY_FACTORY_INSTANCE_NAME;
-                break;
-            default:
-                throw new IllegalArgumentException(
-                        "Invalid algorithm " + algorithm + ". Should be one of '" +
-                                CloudIotOptions.ES_256_DESIGNATOR + "' or '" +
-                                CloudIotOptions.RS_256_DESIGNATOR + "'.");
-        }
-        PrivateKey privateKey = wrapPrivateKey(factoryName, privateKeyBytes);
-        return jwtBuilder.signWith(algorithmObj, privateKey).compact().toCharArray();
-    }
-
-    private static PrivateKey wrapPrivateKey(String algorithm, byte[] keyBytes)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance(algorithm);
-        return kf.generatePrivate(spec);
     }
 
     private void sendMessage(String mqttTopic, byte[] mqttMessage) throws MqttException {

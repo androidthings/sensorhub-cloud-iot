@@ -19,6 +19,7 @@ package com.example.androidthings.weatherstation.cloud.pubsub;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Base64;
 import android.util.Log;
 
 import com.example.androidthings.weatherstation.BuildConfig;
@@ -94,7 +95,8 @@ public class PubsubPublisher implements CloudPublisher {
     public void publish(List<SensorData> data) {
         try {
             PubsubMessage m = new PubsubMessage();
-            m.setData(new String(MessagePayload.encode(data)));
+            m.setData(Base64.encodeToString(MessagePayload.createMessagePayload(data).getBytes(),
+                Base64.DEFAULT));
             PublishRequest request = new PublishRequest();
             request.setMessages(Collections.singletonList(m));
             mPubsub.projects().topics().publish(TOPIC, request).execute();
