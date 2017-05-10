@@ -33,7 +33,7 @@ Prepare the device
 
 - Register the device:
 ```
-gcloud alpha iot devices create <DEVICE_ID> --project=<PROJECT_ID> --region=us-central1 --registry=<REGISTRY_ID> --public-key path=<PRIVATE_KEY_FILE>,type=rs256
+gcloud alpha iot devices create <DEVICE_ID> --project=<PROJECT_ID> --region=<CLOUD_REGION> --registry=<REGISTRY_ID> --public-key path=<PRIVATE_KEY_FILE>,type=rs256
 ```
 - Push the private key file to the device:
 ```
@@ -42,6 +42,8 @@ adb shell mkdir -p /sdcard/CloudIot; adb push <PRIVATE_KEY_FILE> /sdcard/CloudIo
 
 Where:
   `DEVICE_ID`: your device ID (it can be anything that identifies the device for you)
+  `PROJECT_ID`: your Cloud IoT project id
+  `CLOUD_REGION`: the cloud region for project registry
   `REGISTRY_ID`: the registry name where this device should be registered
   `PUBLIC_KEY_FILE`: the `*.pem` file from the key pair
   `PRIVATE_KEY_FILE`: the `*.pkcs8` file from the key pair
@@ -59,7 +61,7 @@ adb shell am start com.example.androidthings.weatherstation/.WeatherStationActiv
 
 Configure the service:
 ```bash
-adb shell am startservice -a com.example.androidthings.weatherstation.mqtt.CONFIGURE -e project_id <PROJECT_ID> -e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> com.example.androidthings.weatherstation/.cloud.CloudPublisherService
+adb shell am startservice -a com.example.androidthings.weatherstation.mqtt.CONFIGURE -e project_id <PROJECT_ID> -e cloud_region <CLOUD_REGION> -e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> com.example.androidthings.weatherstation/.cloud.CloudPublisherService
 ```
 
 

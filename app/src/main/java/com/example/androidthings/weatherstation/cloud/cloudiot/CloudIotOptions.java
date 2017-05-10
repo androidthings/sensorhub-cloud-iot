@@ -30,7 +30,6 @@ import java.util.Locale;
 public class CloudIotOptions {
     private static final String TAG = CloudIotOptions.class.getSimpleName();
 
-    private static final String DEFAULT_REGION = "us-central1";
     private static final String DEFAULT_BRIDGE_HOSTNAME = "mqtt.googleapis.com";
     private static final short DEFAULT_BRIDGE_PORT = 443;
 
@@ -65,7 +64,7 @@ public class CloudIotOptions {
     /**
      * GCP cloud region.
      */
-    private String cloudRegion = DEFAULT_REGION;
+    private String cloudRegion;
 
     /**
      * MQTT bridge hostname.
@@ -148,7 +147,7 @@ public class CloudIotOptions {
             options.projectId = pref.getString("project_id", null);
             options.registryId = pref.getString("registry_id", null);
             options.deviceId = pref.getString("device_id", null);
-            options.cloudRegion = pref.getString("cloud_region", DEFAULT_REGION);
+            options.cloudRegion = pref.getString("cloud_region", null);
             options.bridgeHostname = pref.getString("mqtt_bridge_hostname",
                     DEFAULT_BRIDGE_HOSTNAME);
             options.bridgePort = (short) pref.getInt("mqtt_bridge_port", DEFAULT_BRIDGE_PORT);
