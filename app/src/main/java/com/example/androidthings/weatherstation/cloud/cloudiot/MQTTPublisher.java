@@ -18,20 +18,19 @@ package com.example.androidthings.weatherstation.cloud.cloudiot;
 
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 import android.util.Log;
 
 import com.example.androidthings.weatherstation.SensorData;
 import com.example.androidthings.weatherstation.cloud.CloudPublisher;
 import com.example.androidthings.weatherstation.cloud.MessagePayload;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
