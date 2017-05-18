@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.example.androidthings.weatherstation.cloud;
+package com.example.androidthings.sensorhub.cloud;
 
-import com.example.androidthings.weatherstation.SensorData;
-import com.example.androidthings.weatherstation.cloud.cloudiot.CloudIotOptions;
+import com.example.androidthings.sensorhub.SensorData;
+import com.example.androidthings.sensorhub.cloud.cloudiot.CloudIotOptions;
 
 import java.util.List;
 

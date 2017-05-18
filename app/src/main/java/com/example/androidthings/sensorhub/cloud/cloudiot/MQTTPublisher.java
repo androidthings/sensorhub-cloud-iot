@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.example.androidthings.weatherstation.cloud.cloudiot;
+package com.example.androidthings.sensorhub.cloud.cloudiot;
 
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.example.androidthings.weatherstation.SensorData;
-import com.example.androidthings.weatherstation.cloud.CloudPublisher;
-import com.example.androidthings.weatherstation.cloud.MessagePayload;
+import com.example.androidthings.sensorhub.SensorData;
+import com.example.androidthings.sensorhub.cloud.CloudPublisher;
+import com.example.androidthings.sensorhub.cloud.MessagePayload;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -85,10 +85,10 @@ public class MQTTPublisher implements CloudPublisher {
             Log.w(TAG, "Postponing initialization, since CloudIotOptions is incomplete. " +
                 "Please configure via intent, for example: \n" +
                 "adb shell am startservice -a " +
-                "com.example.androidthings.weatherstation.mqtt.CONFIGURE " +
+                "com.example.androidthings.sensorhub.mqtt.CONFIGURE " +
                 "-e project_id <PROJECT_ID> -e registry_id <REGISTRY_ID> " +
                 "-e device_id <DEVICE_ID> " +
-                "com.example.androidthings.weatherstation/.cloud.CloudPublisherService\n");
+                "com.example.androidthings.sensorhub/.cloud.CloudPublisherService\n");
             return;
         }
         try {

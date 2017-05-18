@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.androidthings.weatherstation.cloud;
+package com.example.androidthings.sensorhub.cloud;
 
 import android.app.Service;
 import android.content.Intent;
@@ -26,9 +26,9 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.util.Log;
 
-import com.example.androidthings.weatherstation.SensorData;
-import com.example.androidthings.weatherstation.cloud.cloudiot.CloudIotOptions;
-import com.example.androidthings.weatherstation.cloud.cloudiot.MQTTPublisher;
+import com.example.androidthings.sensorhub.SensorData;
+import com.example.androidthings.sensorhub.cloud.cloudiot.CloudIotOptions;
+import com.example.androidthings.sensorhub.cloud.cloudiot.MQTTPublisher;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -48,7 +48,7 @@ public class CloudPublisherService extends Service {
     private static final String TAG = " CloudPublisherService";
 
     private static final String INTENT_CONFIGURE_ACTION =
-            "com.example.androidthings.weatherstation.mqtt.CONFIGURE";
+            "com.example.androidthings.sensorhub.mqtt.CONFIGURE";
     private static final String CONFIG_SHARED_PREFERENCES_KEY = "cloud_iot_config";
 
     // Will store at most this amount of most recent sensor change events, per sensor type

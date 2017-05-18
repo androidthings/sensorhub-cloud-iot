@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.androidthings.weatherstation;
+package com.example.androidthings.sensorhub;
 
 import android.os.Build;
 

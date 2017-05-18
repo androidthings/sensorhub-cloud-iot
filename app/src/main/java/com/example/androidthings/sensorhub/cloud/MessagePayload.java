@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.androidthings.weatherstation.cloud;
+package com.example.androidthings.sensorhub.cloud;
 
-import com.example.androidthings.weatherstation.SensorData;
+import com.example.androidthings.sensorhub.SensorData;
 
 import org.json.JSONArray;
 import org.json.JSONException;

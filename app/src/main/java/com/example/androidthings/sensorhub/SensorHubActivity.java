@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.androidthings.weatherstation;
+package com.example.androidthings.sensorhub;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -28,7 +28,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
-import com.example.androidthings.weatherstation.cloud.CloudPublisherService;
+import com.example.androidthings.sensorhub.cloud.CloudPublisherService;
 import com.google.android.things.contrib.driver.bmx280.Bmx280;
 import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.pio.PeripheralManagerService;
@@ -40,9 +40,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-public class WeatherStationActivity extends Activity {
+public class SensorHubActivity extends Activity {
 
-    private static final String TAG = WeatherStationActivity.class.getSimpleName();
+    private static final String TAG = SensorHubActivity.class.getSimpleName();
     private static final long SENSOR_READ_INTERVAL_MS = TimeUnit.SECONDS.toMillis(20);
     /**
      * Cutoff to consider a timestamp as valid. Some boards might take some time to update

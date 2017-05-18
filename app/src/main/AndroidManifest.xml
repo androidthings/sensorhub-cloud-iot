@@ -14,7 +14,7 @@
     limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.androidthings.weatherstation">
+    package="com.example.androidthings.sensorhub">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -28,7 +28,7 @@
         android:theme="@android:style/Theme.DeviceDefault.Light">
         <uses-library android:name="com.google.android.things" />
 
-        <activity android:name=".WeatherStationActivity">
+        <activity android:name=".SensorHubActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,10 +45,10 @@
         </activity>
 
         <service
-            android:name=".cloud.CloudPublisherService"
+            android:name="com.example.androidthings.sensorhub.cloud.CloudPublisherService"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.example.androidthings.weatherstation.mqtt.CONFIGURE" />
+                <action android:name="com.example.androidthings.sensorhub.mqtt.CONFIGURE" />
             </intent-filter>
         </service>
     </application>

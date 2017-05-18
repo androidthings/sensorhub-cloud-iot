@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.androidthings.weatherstation.cloud.pubsub;
+package com.example.androidthings.sensorhub.cloud.pubsub;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -22,11 +22,11 @@ import android.net.NetworkInfo;
 import android.util.Base64;
 import android.util.Log;
 
-import com.example.androidthings.weatherstation.BuildConfig;
-import com.example.androidthings.weatherstation.SensorData;
-import com.example.androidthings.weatherstation.cloud.CloudPublisher;
-import com.example.androidthings.weatherstation.cloud.MessagePayload;
-import com.example.androidthings.weatherstation.cloud.cloudiot.CloudIotOptions;
+import com.example.androidthings.sensorhub.BuildConfig;
+import com.example.androidthings.sensorhub.SensorData;
+import com.example.androidthings.sensorhub.cloud.CloudPublisher;
+import com.example.androidthings.sensorhub.cloud.MessagePayload;
+import com.example.androidthings.sensorhub.cloud.cloudiot.CloudIotOptions;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;

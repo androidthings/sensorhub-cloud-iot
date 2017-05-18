@@ -21,7 +21,7 @@ android {
     buildToolsVersion '25.0.2'
 
     defaultConfig {
-        applicationId "com.example.androidthings.weatherstation"
+        applicationId "com.example.androidthings.sensorhub"
         minSdkVersion 24
         targetSdkVersion 25
         versionCode 1
