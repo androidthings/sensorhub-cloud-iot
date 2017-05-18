@@ -30,6 +30,7 @@ public final class BoardDefaults {
     private static final String DEVICE_RPI3 = "rpi3";
     private static final String DEVICE_PICO = "imx6ul_pico";
     private static final String DEVICE_VVDN = "imx6ul_iopb";
+    private static final String DEVICE_IMX7D_PICO = "imx7d_pico";
     private static String sBoardVariant = "";
 
     public static String getI2cBusForSensors() {
@@ -46,6 +47,8 @@ public final class BoardDefaults {
                 return "I2C2";
             case DEVICE_VVDN:
                 return "I2C4";
+            case DEVICE_IMX7D_PICO:
+                return "I2C1";
             default:
                 throw new IllegalArgumentException("Unknown device: " + Build.DEVICE);
         }
@@ -65,6 +68,8 @@ public final class BoardDefaults {
                 return "GPIO4_IO20";
             case DEVICE_VVDN:
                 return "GPIO3_IO01";
+            case DEVICE_IMX7D_PICO:
+                return "GPIO_174";
             default:
                 throw new IllegalArgumentException("Unknown device: " + Build.DEVICE);
         }

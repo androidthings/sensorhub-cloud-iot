@@ -86,8 +86,8 @@ public class MQTTPublisher implements CloudPublisher {
                 "Please configure via intent, for example: \n" +
                 "adb shell am startservice -a " +
                 "com.example.androidthings.sensorhub.mqtt.CONFIGURE " +
-                "-e project_id <PROJECT_ID> -e registry_id <REGISTRY_ID> " +
-                "-e device_id <DEVICE_ID> " +
+                "-e project_id <PROJECT_ID> -e cloud_region <REGION> " +
+                "-e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> " +
                 "com.example.androidthings.sensorhub/.cloud.CloudPublisherService\n");
             return;
         }
