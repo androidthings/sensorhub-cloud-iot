@@ -28,43 +28,73 @@ Schematics
 ![Schematics for Raspberry Pi 3](rpi3_schematics.png)
 
 
-Prepare the device
-==================
-
-- Create a key pair for the device. Instructions in [docs](https://cloud.google.com/iot/docs/device_manager_guide)
-
-- Register the device:
-```
-gcloud beta iot devices create <DEVICE_ID> --project=<PROJECT_ID> --region=<CLOUD_REGION> --registry=<REGISTRY_ID> --public-key path=<PRIVATE_KEY_FILE>,type=rs256
-```
-- Push the private key file to the device:
-```
-adb shell mkdir -p /sdcard/CloudIot; adb push <PRIVATE_KEY_FILE> /sdcard/CloudIot/private_key.pkcs8
-```
-
-Where:
-  `DEVICE_ID`: your device ID (it can be anything that identifies the device for you)
-  `PROJECT_ID`: your Cloud IoT project id
-  `CLOUD_REGION`: the cloud region for project registry
-  `REGISTRY_ID`: the registry name where this device should be registered
-  `PUBLIC_KEY_FILE`: the `*.pem` file from the key pair
-  `PRIVATE_KEY_FILE`: the `*.pkcs8` file from the key pair
-
-
 Build and install
 =================
 
 On Android Studio, click on the "Run" button.
 If you prefer to run on the command line, type
-```bash
+```
 ./gradlew installDebug
 adb shell am start com.example.androidthings.sensorhub/.SensorHubActivity
 ```
 
-Configure the service:
-```bash
+Prepare the device
+==================
+
+This sample will create a key pair (private and public) on the device on the
+first run. The private key will be saved to the Android Keystore, using a
+secure hardware if one is available. The public key will be printed to logcat
+and will be available as a file on your external storage location.
+
+You will need the public key to register your device to Google Cloud IoT. Here's
+how you can fetch it:
+
+```
+adb pull /sdcard/cloud_iot_auth_certificate.pem
+```
+
+or, depending on your platform:
+
+```
+adb -d shell "run-as com.example.androidthings.sensorhub cat /data/user/0/com.example.androidthings.sensorhub/files/cloud_iot_auth_certificate.pem" > cloud_iot_auth_certificate.pem
+```
+
+A new keypair is only generated again when the device is reflashed.
+
+Register the device
+-------------------
+
+With the `cloud_iot_auth_certificate.pem` file, you can register your device on
+Google Cloud IoT:
+
+```
+gcloud beta iot devices create <DEVICE_ID> --project=<PROJECT_ID> --region=<CLOUD_REGION> --registry=<REGISTRY_ID> --public-key path=cloud_iot_auth_certificate.pem,type=rs256
+```
+
+Where:
+- `DEVICE_ID`: your device ID (it can be anything that identifies the device for you)
+- `PROJECT_ID`: your Cloud IoT project id
+- `CLOUD_REGION`: the cloud region for project registry
+- `REGISTRY_ID`: the registry name where this device should be registered
+
+Configure the device
+--------------------
+
+Now that your device's public key is regsitered to Google Cloud IoT, you can set
+the device so that it can publish the sensor data to the Cloud IoT MQTT:
+
+```
 adb shell am startservice -a com.example.androidthings.sensorhub.mqtt.CONFIGURE -e project_id <PROJECT_ID> -e cloud_region <CLOUD_REGION> -e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> com.example.androidthings.sensorhub/.cloud.CloudPublisherService
 ```
+
+Next steps
+----------
+
+If the registration and configuration steps were executed successfully, your
+device will immediately start to publish sensor data to Google Cloud IoT.
+
+Take a look at the [Google Cloud IoT documentation](https://cloud.google.com/iot/) to learn how to pipe the
+data published by your devices into the other Google Cloud services.
 
 
 License
