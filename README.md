@@ -1,5 +1,4 @@
-Android Things Cloud IoT Sensor Hub
-===================================
+# Android Things Cloud IoT Sensor Hub
 
 This demo shows how to implement a sensor hub on Android Things that collects
 sensor data from connected sensors and publish on a
@@ -14,22 +13,19 @@ Google Cloud IoT PubSub topic.
 (temperature and pressure) publishes only the most recent value. Onchange mode
 sensors (motion detection) stores up to 10 sensor changes in between pubsub publications.
 
-Pre-requisites
---------------
+## Pre-requisites
+
 - Android Things compatible board
 - Android Studio 2.2+
 - 1 [bmp280 temperature and pressure](https://www.adafruit.com/product/2651)
 - 1 [PIR motion detector sensor](https://www.adafruit.com/product/189)
 - [Google Cloud Platform](https://cloud.google.com/) project with Cloud IoT support
 
-Schematics
-----------
+## Schematics
 
 ![Schematics for Raspberry Pi 3](rpi3_schematics.png)
 
-
-Build and install
-=================
+## Build and install
 
 On Android Studio, click on the "Run" button.
 If you prefer to run on the command line, type
@@ -38,8 +34,7 @@ If you prefer to run on the command line, type
 adb shell am start com.example.androidthings.sensorhub/.SensorHubActivity
 ```
 
-Prepare the device
-==================
+## Prepare the device
 
 This sample will create a key pair (private and public) on the device on the
 first run. The private key will be saved to the Android Keystore, using a
@@ -61,8 +56,7 @@ adb -d shell "run-as com.example.androidthings.sensorhub cat /data/user/0/com.ex
 
 A new keypair is only generated again when the device is reflashed.
 
-Register the device
--------------------
+## Register the device
 
 With the `cloud_iot_auth_certificate.pem` file, you can register your device on
 Google Cloud IoT:
@@ -77,8 +71,7 @@ Where:
 - `CLOUD_REGION`: the cloud region for project registry
 - `REGISTRY_ID`: the registry name where this device should be registered
 
-Configure the device
---------------------
+## Configure the device
 
 Now that your device's public key is regsitered to Google Cloud IoT, you can set
 the device so that it can publish the sensor data to the Cloud IoT MQTT:
@@ -87,8 +80,7 @@ the device so that it can publish the sensor data to the Cloud IoT MQTT:
 adb shell am startservice -a com.example.androidthings.sensorhub.mqtt.CONFIGURE -e project_id <PROJECT_ID> -e cloud_region <CLOUD_REGION> -e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> com.example.androidthings.sensorhub/.cloud.CloudPublisherService
 ```
 
-Next steps
-----------
+## Next steps
 
 If the registration and configuration steps were executed successfully, your
 device will immediately start to publish sensor data to Google Cloud IoT.
@@ -96,9 +88,8 @@ device will immediately start to publish sensor data to Google Cloud IoT.
 Take a look at the [Google Cloud IoT documentation](https://cloud.google.com/iot/) to learn how to pipe the
 data published by your devices into the other Google Cloud services.
 
+## License
 
-License
--------
 Copyright 2016 The Android Open Source Project, Inc.
 Licensed to the Apache Software Foundation (ASF) under one or more contributor
 license agreements.  See the NOTICE file distributed with this work for
