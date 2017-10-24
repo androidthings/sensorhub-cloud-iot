@@ -69,7 +69,7 @@ public final class BoardDefaults {
             case DEVICE_VVDN:
                 return "GPIO3_IO01";
             case DEVICE_IMX7D_PICO:
-                return "GPIO_174";
+                return "GPIO6_IO14";
             default:
                 throw new IllegalArgumentException("Unknown device: " + Build.DEVICE);
         }
