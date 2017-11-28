@@ -31,7 +31,6 @@ import android.util.Log;
 import com.example.androidthings.sensorhub.cloud.CloudPublisherService;
 import com.google.android.things.contrib.driver.bmx280.Bmx280;
 import com.google.android.things.contrib.driver.button.Button;
-import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -125,7 +124,6 @@ public class SensorHubActivity extends Activity {
 
     private Bmx280 connectToBmx280() {
         try {
-            PeripheralManagerService pioService = new PeripheralManagerService();
             Bmx280 bmx280 = new Bmx280(BoardDefaults.getI2cBusForSensors());
             bmx280.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
             bmx280.setPressureOversampling(Bmx280.OVERSAMPLING_1X);

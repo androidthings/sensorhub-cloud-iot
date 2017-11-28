@@ -17,13 +17,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "com.example.androidthings.sensorhub"
-        minSdkVersion 24
-        targetSdkVersion 25
+        minSdkVersion 26
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
     }
@@ -45,30 +45,31 @@ android {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
-    provided 'com.google.android.things:androidthings:0.3-devpreview'
-    compile 'com.google.android.things.contrib:driver-bmx280:0.1'
-    compile 'com.google.android.things.contrib:driver-button:0.2'
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:support-annotations:27.1.0'
+    compileOnly 'com.google.android.things:androidthings:0.7-devpreview'
+    implementation 'com.google.android.things.contrib:driver-bmx280:0.5'
+    implementation 'com.google.android.things.contrib:driver-button:0.6'
 
     // for pubsub:
-    compile('com.google.api-client:google-api-client-android:1.22.0') {
+    implementation('com.google.api-client:google-api-client-android:1.22.0') {
         exclude group: 'org.apache.httpcomponents'
     }
-    compile('com.google.apis:google-api-services-pubsub:v1-rev12-1.22.0') {
+    implementation('com.google.apis:google-api-services-pubsub:v1-rev12-1.22.0') {
         exclude group: 'org.apache.httpcomponents'
     }
 
     // for MQTT:
-    compile('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0', {
+    implementation('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0', {
         exclude group: 'com.google.android', module: 'support-v4'
     })
-    compile('org.eclipse.paho:org.eclipse.paho.android.service:1.0.2', {
+    implementation('org.eclipse.paho:org.eclipse.paho.android.service:1.0.2', {
         exclude group: 'com.google.android', module: 'support-v4'
     })
-    compile 'io.jsonwebtoken:jjwt:0.7.0'
+    implementation 'io.jsonwebtoken:jjwt:0.7.0'
 
     // Helper libraries for MQTT support:
-    compile 'joda-time:joda-time:2.9.7'
-    compile 'commons-io:commons-io:2.5'
+    implementation 'joda-time:joda-time:2.9.7'
+    implementation 'commons-io:commons-io:2.5'
 
 }
