@@ -62,7 +62,7 @@ With the `cloud_iot_auth_certificate.pem` file, you can register your device on
 Google Cloud IoT:
 
 ```
-gcloud beta iot devices create <DEVICE_ID> --project=<PROJECT_ID> --region=<CLOUD_REGION> --registry=<REGISTRY_ID> --public-key path=cloud_iot_auth_certificate.pem,type=rs256
+gcloud iot devices create <DEVICE_ID> --project=<PROJECT_ID> --region=<CLOUD_REGION> --registry=<REGISTRY_ID> --public-key path=cloud_iot_auth_certificate.pem,type=rs256
 ```
 
 Where:
