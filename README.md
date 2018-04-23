@@ -1,17 +1,22 @@
-# Android Things Cloud IoT Sensor Hub
+# Cloud IoT Sensor Hub
 
-This demo shows how to implement a sensor hub on Android Things that collects
-sensor data from connected sensors and publish on a
-Google Cloud IoT PubSub topic.
+This sample shows how to implement a sensor hub on Android Things that collects
+sensor data from connected sensors and publish on a Google Cloud IoT PubSub topic.
 
-- connection parameters are configurable via intent and configuration is saved in sharedpreferences
-- sensor robustness: you can remove and add sensors at runtime and the app will adapt accordingly
-- network robustness: device can loose connectivity. When connectivity is restored, it will auto-reconnect
-- power robustness: device can loose power. When is reboots, it will auto-reconnect
-- sensor data collected since the last publish is sent to pubsub every 20 seconds
-- sensor data is collected either as continuous mode or onchange mode. Continuous mode sensors
-(temperature and pressure) publishes only the most recent value. Onchange mode
-sensors (motion detection) stores up to 10 sensor changes in between pubsub publications.
+## Introduction
+
+The sample showcases a sensor-based device publishing data to
+[Google Cloud IoT Core](https://cloud.google.com/iot-core/). Sensors can be
+added or removed dynamically, and the device will reconnect automatically to the
+cloud when power or connectivity is lost.
+
+Sensor data collected since the last publish is sent through Cloud IoT every
+20 seconds. The amount of data sent depends on the mode of each sensor:
+
+- **Continuous:** Continuous mode sensors (temperature and pressure) publish
+  only the most recent value.
+- **On-Change:** On-Change mode sensors (motion detection) store up to 10 change
+  events in between publications.
 
 ## Pre-requisites
 
@@ -85,7 +90,7 @@ adb shell am startservice -a com.example.androidthings.sensorhub.mqtt.CONFIGURE 
 If the registration and configuration steps were executed successfully, your
 device will immediately start to publish sensor data to Google Cloud IoT.
 
-Take a look at the [Google Cloud IoT documentation](https://cloud.google.com/iot/) to learn how to pipe the
+Take a look at the [Google Cloud IoT documentation](https://cloud.google.com/iot/docs/) to learn how to pipe the
 data published by your devices into the other Google Cloud services.
 
 ## License
