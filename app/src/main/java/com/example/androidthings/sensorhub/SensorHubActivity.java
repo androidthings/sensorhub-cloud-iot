@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The Android Open Source Project
+ * Copyright 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,245 +13,99 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.example.androidthings.sensorhub;
 
 import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 
-import com.example.androidthings.sensorhub.cloud.CloudPublisherService;
-import com.google.android.things.contrib.driver.bmx280.Bmx280;
-import com.google.android.things.contrib.driver.button.Button;
+import com.example.androidthings.sensorhub.collector.Bmx280Collector;
+import com.example.androidthings.sensorhub.collector.MotionCollector;
+import com.example.androidthings.sensorhub.iotcore.SensorHub;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+import java.security.GeneralSecurityException;
 
 public class SensorHubActivity extends Activity {
 
     private static final String TAG = SensorHubActivity.class.getSimpleName();
-    private static final long SENSOR_READ_INTERVAL_MS = TimeUnit.SECONDS.toMillis(20);
-    /**
-     * Cutoff to consider a timestamp as valid. Some boards might take some time to update
-     * their network time on the first time they boot, and we don't want to publish sensor data
-     * with timestamps that we know are invalid. Sensor readings will be ignored until the
-     * board's time (System.currentTimeMillis) is more recent than this constant.
-     */
-    private static final long INITIAL_VALID_TIMESTAMP;
-    static {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(2016, 1, 1);
-        INITIAL_VALID_TIMESTAMP = calendar.getTimeInMillis();
-    }
 
-    public static final String SENSOR_TYPE_MOTION_DETECTION = "motion";
-    public static final String SENSOR_TYPE_TEMPERATURE_DETECTION = "temperature";
-    public static final String SENSOR_TYPE_AMBIENT_PRESSURE_DETECTION = "ambient_pressure";
+    private static final String CONFIG_SHARED_PREFERENCES_KEY = "cloud_iot_config";
 
-    private CloudPublisherService mPublishService;
-    private Looper mSensorLooper;
-
-    // sensors
-    private Bmx280 mEnvironmentalSensor;
-    private Button mMotionDetectorSensor;
+    private SensorHub sensorHub;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d(TAG, "Started Weather Station");
-
-        initializeServiceIfNeeded();
-
-        // Start the thread that collects sensor data
-        HandlerThread thread = new HandlerThread("CloudPublisherService");
-        thread.start();
-        mSensorLooper = thread.getLooper();
-
-        final Handler sensorHandler = new Handler(mSensorLooper);
-        sensorHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    initializeServiceIfNeeded();
-                    connectToAvailableSensors();
-                    collectContinuousSensors();
-                } catch (Throwable t) {
-                    Log.e(TAG, String.format(Locale.getDefault(),
-                            "Cannot collect sensor data, will try again in %d ms",
-                            SENSOR_READ_INTERVAL_MS), t);
-                }
-                sensorHandler.postDelayed(this, SENSOR_READ_INTERVAL_MS);
-            }
-        }, SENSOR_READ_INTERVAL_MS);
-
-        connectToAvailableSensors();
-    }
-
-    private void initializeServiceIfNeeded() {
-        if (mPublishService == null) {
-            try {
-                // Bind to the service
-                Intent intent = new Intent(this, CloudPublisherService.class);
-                bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-            } catch (Throwable t) {
-                Log.e(TAG, "Could not connect to the service, will try again later", t);
-            }
-        }
-    }
-
-    private void connectToAvailableSensors() {
-        // Temperature and Pressure:
-        if (mEnvironmentalSensor == null) {
-            mEnvironmentalSensor = connectToBmx280();
-        }
-
-        if (mMotionDetectorSensor == null) {
-            mMotionDetectorSensor = connectToMotionDetector();
-        }
-    }
-
-    private Bmx280 connectToBmx280() {
-        try {
-            Bmx280 bmx280 = new Bmx280(BoardDefaults.getI2cBusForSensors());
-            bmx280.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
-            bmx280.setPressureOversampling(Bmx280.OVERSAMPLING_1X);
-            bmx280.setMode(Bmx280.MODE_NORMAL);
-            Log.d(TAG, "Initialized BME280");
-            return bmx280;
-        } catch (Throwable t) {
-            Log.w(TAG, "Could not initialize BME280 sensor on I2C bus " +
-                    BoardDefaults.getI2cBusForSensors(), t);
-            return null;
-        }
-    }
-
-    private Button connectToMotionDetector() {
-        try {
-            Button button = new Button(BoardDefaults.getGPIOForMotionDetector(),
-                    Button.LogicState.PRESSED_WHEN_HIGH);
-            button.setOnButtonEventListener(new Button.OnButtonEventListener() {
-                @Override
-                public void onButtonEvent(Button button, boolean pressed) {
-                    collectSensorOnChange(SENSOR_TYPE_MOTION_DETECTION, pressed ? 1 : 0);
-                }
-            });
-            Log.d(TAG, "Initialized motion detector");
-            return button;
-        } catch (Throwable t) {
-            Log.w(TAG, "Could not initialize motion detector on gpio pin " +
-                    BoardDefaults.getGPIOForMotionDetector(), t);
-            return null;
-        }
-    }
-
-    private void collectContinuousSensors() {
-        if (mPublishService != null) {
-            List<SensorData> sensorsData = new ArrayList<>();
-            addBmx280Readings(sensorsData);
-            Log.d(TAG, "collected continuous sensor data: " + sensorsData);
-            mPublishService.logSensorData(sensorsData);
-        }
-    }
-
-    private void addBmx280Readings(List<SensorData> output) {
-        if (mEnvironmentalSensor != null) {
-            try {
-                long now = System.currentTimeMillis();
-                if (now >= INITIAL_VALID_TIMESTAMP) {
-                    float[] data = mEnvironmentalSensor.readTemperatureAndPressure();
-                    output.add(new SensorData(now, SENSOR_TYPE_TEMPERATURE_DETECTION, data[0]));
-                    output.add(new SensorData(now, SENSOR_TYPE_AMBIENT_PRESSURE_DETECTION,
-                            data[1]));
-                } else {
-                    Log.i(TAG, "Ignoring sensor readings because timestamp is invalid. " +
-                            "Please, set the device's date/time");
-                }
-            } catch (Throwable t) {
-                Log.w(TAG, "Cannot collect Bmx280 data. Ignoring it for now", t);
-                closeBmx280Quietly();
-            }
-        }
-    }
-
-    private void collectSensorOnChange(String type, float sensorReading) {
-        if (mPublishService != null) {
-            Log.d(TAG, "On change " + type + ": " + sensorReading);
-            long now = System.currentTimeMillis();
-            if (now >= INITIAL_VALID_TIMESTAMP) {
-                mPublishService.logSensorDataOnChange(new SensorData(now, type, sensorReading));
-            } else {
-                Log.i(TAG, "Ignoring sensor readings because timestamp is invalid. " +
-                        "Please, set the device's date/time");
-            }
-        }
-    }
-
-    private void closeBmx280Quietly() {
-        if (mEnvironmentalSensor != null) {
-            try {
-                mEnvironmentalSensor.close();
-            } catch (IOException e) {
-                // close quietly
-            }
-            mEnvironmentalSensor = null;
-        }
-    }
-
-    private void closeMotionDetectorQuietly() {
-        if (mMotionDetectorSensor != null) {
-            try {
-                mMotionDetectorSensor.close();
-            } catch (IOException e) {
-                // close quietly
-            }
-            mMotionDetectorSensor = null;
-        }
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(TAG, "onNewIntent");
+        // getIntent() should always return the most recent
+        setIntent(intent);
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy");
-
-        mSensorLooper.quit();
-        closeBmx280Quietly();
-        closeMotionDetectorQuietly();
-
-        // unbind from Cloud Publisher service.
-        if (mPublishService != null) {
-            unbindService(mServiceConnection);
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+        SharedPreferences prefs = getSharedPreferences(CONFIG_SHARED_PREFERENCES_KEY, MODE_PRIVATE);
+        Parameters params = readParameters(prefs, getIntent().getExtras());
+        if (params != null) {
+            params.saveToPreferences(prefs);
+            initializeHub(params);
         }
     }
 
-
-    /**
-     * Callback for service binding, passed to bindService()
-     */
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            CloudPublisherService.LocalBinder binder = (CloudPublisherService.LocalBinder) service;
-            mPublishService = binder.getService();
+    private void initializeHub(Parameters params) {
+        if (sensorHub != null) {
+            sensorHub.stop();
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mPublishService = null;
+        Log.i(TAG, "Initialization parameters:\n" +
+                "   Project ID: " + params.getProjectId() + "\n" +
+                "    Region ID: " + params.getCloudRegion() + "\n" +
+                "  Registry ID: " + params.getRegistryId() + "\n" +
+                "    Device ID: " + params.getDeviceId() + "\n" +
+                "Key algorithm: " + params.getKeyAlgorithm());
+
+        sensorHub = new SensorHub(params);
+        sensorHub.registerSensorCollector(new Bmx280Collector(
+                BoardDefaults.getI2cBusForSensors()));
+        sensorHub.registerSensorCollector(new MotionCollector(
+                BoardDefaults.getGPIOForMotionDetector()));
+
+        try {
+            sensorHub.start();
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e(TAG, "Cannot load keypair", e);
         }
-    };
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        if (sensorHub != null) {
+            sensorHub.stop();
+        }
+    }
+
+    private Parameters readParameters(SharedPreferences prefs, Bundle extras) {
+        Parameters params = Parameters.from(prefs, extras);
+        if (params == null) {
+            String validAlgorithms = String.join(",",
+                    AuthKeyGenerator.SUPPORTED_KEY_ALGORITHMS);
+            Log.w(TAG, "Postponing initialization until enough parameters are set. " +
+                    "Please configure via intent, for example: \n" +
+                    "adb shell am start " +
+                    "-e project_id <PROJECT_ID> -e cloud_region <REGION> " +
+                    "-e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> " +
+                    "[-e key_algorithm <one of " + validAlgorithms + ">] " +
+                    getPackageName() + "/." +
+                    getLocalClassName() + "\n");
+        }
+        return params;
+    }
 
 }

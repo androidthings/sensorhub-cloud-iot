@@ -20,37 +20,24 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.google.android.things.permission.USE_PERIPHERAL_IO" />
 
-    <application
-        android:allowBackup="true"
-        android:icon="@android:drawable/sym_def_app_icon"
-        android:label="@string/app_name"
-        android:theme="@android:style/Theme.DeviceDefault.Light">
+    <application android:label="@string/app_name">
         <uses-library android:name="com.google.android.things" />
 
-        <activity android:name=".SensorHubActivity">
+        <activity android:name=".SensorHubActivity" android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <!-- Launch activity automatically on boot -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.IOT_LAUNCHER" />
+                <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name="com.example.androidthings.sensorhub.cloud.CloudPublisherService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.example.androidthings.sensorhub.mqtt.CONFIGURE" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

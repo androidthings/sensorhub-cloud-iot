@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The Android Open Source Project
+ * Copyright 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.example.androidthings.sensorhub.cloud;
+package com.example.androidthings.sensorhub.collector;
 
 import com.example.androidthings.sensorhub.SensorData;
-import com.example.androidthings.sensorhub.cloud.cloudiot.CloudIotOptions;
 
 import java.util.List;
 
-public interface CloudPublisher extends AutoCloseable {
-
-    boolean isReady();
-
-    void publish(List<SensorData> data);
-
-    void reconfigure(CloudIotOptions options);
+/**
+ * Abstracts the process of reading sensor data from related sensors.
+ */
+public interface SensorCollector {
+    boolean activate();
+    void setEnabled(String sensor, boolean enabled);
+    boolean isEnabled(String sensor);
+    List<String> getAvailableSensors();
+    List<String> getEnabledSensors();
+    void collectRecentReadings(List<SensorData> output);
+    void closeQuietly();
 }
