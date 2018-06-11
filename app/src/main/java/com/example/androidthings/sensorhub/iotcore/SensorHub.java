@@ -134,12 +134,13 @@ public class SensorHub {
                 .setConnectionCallback(new ConnectionCallback() {
                     @Override
                     public void onConnected() {
+                        Log.d(TAG, "Connected to IoT Core");
                         ready.set(true);
                     }
 
                     @Override
                     public void onDisconnected(int i) {
-                        ready.set(false);
+                        Log.d(TAG, "Disconnected from IoT Core");
                     }
                 })
                 .setOnConfigurationListener(this::onConfigurationReceived)
