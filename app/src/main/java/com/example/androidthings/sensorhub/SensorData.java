@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The Android Open Source Project
+ * Copyright 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.example.androidthings.sensorhub;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-public class SensorData implements Parcelable {
+public class SensorData {
     private long timestamp;
     private String sensorName;
     private float value;
+
+    public SensorData(String sensorName, float value) {
+        this(System.currentTimeMillis(), sensorName, value);
+    }
 
     public SensorData(long timestamp, String sensorName, float value) {
         this.timestamp = timestamp;
@@ -39,33 +41,6 @@ public class SensorData implements Parcelable {
 
     public float getValue() {
         return value;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeLong(timestamp);
-        out.writeString(sensorName);
-        out.writeFloat(value);
-    }
-
-    public static final Parcelable.Creator<SensorData> CREATOR
-            = new Parcelable.Creator<SensorData>() {
-        public SensorData createFromParcel(Parcel in) {
-            return new SensorData(in);
-        }
-
-        public SensorData[] newArray(int size) {
-            return new SensorData[size];
-        }
-    };
-
-    private SensorData(Parcel in) {
-        this(in.readLong(), in.readString(), in.readFloat());
     }
 
     @Override

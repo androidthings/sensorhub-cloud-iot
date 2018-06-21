@@ -17,13 +17,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
 
     defaultConfig {
         applicationId "com.example.androidthings.sensorhub"
-        minSdkVersion 26
-        targetSdkVersion 26
+        minSdkVersion 27
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
     }
@@ -42,34 +41,18 @@ android {
     packagingOptions {
         exclude 'META-INF/LICENSE'
     }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
 }
 
 dependencies {
     testImplementation 'junit:junit:4.12'
-    implementation 'com.android.support:support-annotations:27.1.0'
-    compileOnly 'com.google.android.things:androidthings:0.7-devpreview'
-    implementation 'com.google.android.things.contrib:driver-bmx280:0.5'
-    implementation 'com.google.android.things.contrib:driver-button:0.6'
+    implementation 'com.android.support:support-annotations:27.1.1'
+    compileOnly 'com.google.android.things:androidthings:1.0'
+    implementation 'com.google.android.things.contrib:driver-bmx280:1.0'
+    implementation 'com.google.android.things.contrib:driver-button:1.0'
 
-    // for pubsub:
-    implementation('com.google.api-client:google-api-client-android:1.22.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    implementation('com.google.apis:google-api-services-pubsub:v1-rev12-1.22.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-
-    // for MQTT:
-    implementation('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0', {
-        exclude group: 'com.google.android', module: 'support-v4'
-    })
-    implementation('org.eclipse.paho:org.eclipse.paho.android.service:1.0.2', {
-        exclude group: 'com.google.android', module: 'support-v4'
-    })
-    implementation 'io.jsonwebtoken:jjwt:0.7.0'
-
-    // Helper libraries for MQTT support:
-    implementation 'joda-time:joda-time:2.9.7'
-    implementation 'commons-io:commons-io:2.5'
-
+    implementation 'com.google.android.things:cloud-iot-core:1.0.0'
 }
