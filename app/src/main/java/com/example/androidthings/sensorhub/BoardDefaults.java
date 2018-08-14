@@ -20,11 +20,13 @@ import android.os.Build;
 @SuppressWarnings("WeakerAccess")
 public final class BoardDefaults {
     private static final String DEVICE_RPI3 = "rpi3";
+    private static final String DEVICE_RPI3BP = "rpi3bp";
     private static final String DEVICE_IMX7D_PICO = "imx7d_pico";
 
     public static String getI2cBusForSensors() {
         switch (Build.DEVICE) {
             case DEVICE_RPI3:
+            case DEVICE_RPI3BP:
                 return "I2C1";
             case DEVICE_IMX7D_PICO:
                 return "I2C1";
@@ -36,6 +38,7 @@ public final class BoardDefaults {
     public static String getGPIOForMotionDetector() {
         switch (Build.DEVICE) {
             case DEVICE_RPI3:
+            case DEVICE_RPI3BP:
                 return "BCM21";
             case DEVICE_IMX7D_PICO:
                 return "GPIO6_IO14";
